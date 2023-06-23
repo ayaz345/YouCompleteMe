@@ -80,7 +80,7 @@ class OmniCompleter( Completer ):
     line, column = vimsupport.CurrentLineAndColumn()
 
     try:
-      start_column = vimsupport.GetIntValue( self._omnifunc + '(1,"")' )
+      start_column = vimsupport.GetIntValue(f'{self._omnifunc}(1,"")')
 
       # Vim only stops completion if the value returned by the omnifunc is -3 or
       # -2. In other cases, if the value is negative or greater than the current
@@ -132,8 +132,7 @@ class OmniCompleter( Completer ):
       return items
 
     except ( TypeError, ValueError, vim.error ) as error:
-      vimsupport.PostVimMessage(
-        OMNIFUNC_RETURNED_BAD_VALUE + ' ' + str( error ) )
+      vimsupport.PostVimMessage(f'{OMNIFUNC_RETURNED_BAD_VALUE} {str(error)}')
       return []
 
     finally:

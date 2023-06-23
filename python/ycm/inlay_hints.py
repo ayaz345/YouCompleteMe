@@ -78,9 +78,7 @@ class InlayHints( sr.ScrollingBufferRange ):
     self.Clear()
 
     for inlay_hint in self._latest_response:
-      if 'kind' not in inlay_hint:
-        prop_type = 'YCM_INLAY_UNKNOWN'
-      elif inlay_hint[ 'kind' ] not in HIGHLIGHT_GROUP:
+      if 'kind' not in inlay_hint or inlay_hint['kind'] not in HIGHLIGHT_GROUP:
         prop_type = 'YCM_INLAY_UNKNOWN'
       else:
         prop_type = 'YCM_INLAY_' + inlay_hint[ 'kind' ]

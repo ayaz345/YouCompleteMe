@@ -37,9 +37,7 @@ def StartColumnCompliance( ycm,
                            ycm_completions,
                            ycm_start_column ):
   def Omnifunc( findstart, base ):
-    if findstart:
-      return omnifunc_start_column
-    return [ 'foo' ]
+    return omnifunc_start_column if findstart else [ 'foo' ]
 
   current_buffer = VimBuffer( 'buffer',
                               contents = [ 'fo' ],
@@ -63,9 +61,7 @@ class OmniCompleterTest( TestCase ):
                             'g:ycm_semantic_triggers': TRIGGERS } )
   def test_OmniCompleter_GetCompletions_Cache_List( self, ycm ):
     def Omnifunc( findstart, base ):
-      if findstart:
-        return 5
-      return [ 'a', 'b', 'cdef' ]
+      return 5 if findstart else [ 'a', 'b', 'cdef' ]
 
     current_buffer = VimBuffer( 'buffer',
                                 contents = [ 'test.' ],
@@ -91,9 +87,7 @@ class OmniCompleterTest( TestCase ):
                             'g:ycm_semantic_triggers': TRIGGERS } )
   def test_OmniCompleter_GetCompletions_Cache_ListFilter( self, ycm ):
     def Omnifunc( findstart, base ):
-      if findstart:
-        return 5
-      return [ 'a', 'b', 'cdef' ]
+      return 5 if findstart else [ 'a', 'b', 'cdef' ]
 
     current_buffer = VimBuffer( 'buffer',
                                 contents = [ 'test.t' ],
@@ -115,9 +109,7 @@ class OmniCompleterTest( TestCase ):
                             'g:ycm_semantic_triggers': TRIGGERS } )
   def test_OmniCompleter_GetCompletions_NoCache_List( self, ycm ):
     def Omnifunc( findstart, base ):
-      if findstart:
-        return 5
-      return [ 'a', 'b', 'cdef' ]
+      return 5 if findstart else [ 'a', 'b', 'cdef' ]
 
     current_buffer = VimBuffer( 'buffer',
                                 contents = [ 'test.' ],
@@ -143,9 +135,7 @@ class OmniCompleterTest( TestCase ):
                             'g:ycm_semantic_triggers': TRIGGERS } )
   def test_OmniCompleter_GetCompletions_NoCache_ListFilter( self, ycm ):
     def Omnifunc( findstart, base ):
-      if findstart:
-        return 5
-      return [ 'a', 'b', 'cdef' ]
+      return 5 if findstart else [ 'a', 'b', 'cdef' ]
 
     current_buffer = VimBuffer( 'buffer',
                                 contents = [ 'test.t' ],
@@ -173,9 +163,7 @@ class OmniCompleterTest( TestCase ):
                             'g:ycm_semantic_triggers': TRIGGERS } )
   def test_OmniCompleter_GetCompletions_NoCache_UseFindStart( self, ycm ):
     def Omnifunc( findstart, base ):
-      if findstart:
-        return 0
-      return [ 'a', 'b', 'cdef' ]
+      return 0 if findstart else [ 'a', 'b', 'cdef' ]
 
     current_buffer = VimBuffer( 'buffer',
                                 contents = [ 'test.t' ],
@@ -203,9 +191,7 @@ class OmniCompleterTest( TestCase ):
                             'g:ycm_semantic_triggers': TRIGGERS } )
   def test_OmniCompleter_GetCompletions_Cache_UseFindStart( self, ycm ):
     def Omnifunc( findstart, base ):
-      if findstart:
-        return 0
-      return [ 'a', 'b', 'cdef' ]
+      return 0 if findstart else [ 'a', 'b', 'cdef' ]
 
     current_buffer = VimBuffer( 'buffer',
                                 contents = [ 'test.t' ],
@@ -229,9 +215,7 @@ class OmniCompleterTest( TestCase ):
                             'g:ycm_semantic_triggers': TRIGGERS } )
   def test_OmniCompleter_GetCompletions_Cache_Object( self, ycm ):
     def Omnifunc( findstart, base ):
-      if findstart:
-        return 5
-      return { 'words': [ 'a', 'b', 'CDtEF' ] }
+      return 5 if findstart else { 'words': [ 'a', 'b', 'CDtEF' ] }
 
     current_buffer = VimBuffer( 'buffer',
                                 contents = [ 'test.t' ],
@@ -536,9 +520,7 @@ class OmniCompleterTest( TestCase ):
   def test_OmniCompleter_GetCompletions_NoCache_List_Filter_Unicode(
       self, ycm ):
     def Omnifunc( findstart, base ):
-      if findstart:
-        return 12
-      return [ 'πππππππ yummy πie' ]
+      return 12 if findstart else [ 'πππππππ yummy πie' ]
 
     current_buffer = VimBuffer( 'buffer',
                                 contents = [ '†åsty_π.ππ' ],
@@ -674,9 +656,7 @@ class OmniCompleterTest( TestCase ):
     # ccomplete#Complete would.
     def Omnifunc( findstart, base ):
       vimsupport.SetCurrentLineAndColumn( 0, 0 )
-      if findstart:
-        return 5
-      return [ 'length' ]
+      return 5 if findstart else [ 'length' ]
 
     current_buffer = VimBuffer( 'buffer',
                                 contents = [ 'String test',
@@ -710,9 +690,7 @@ class OmniCompleterTest( TestCase ):
     def Omnifunc( findstart, base ):
       if findstart:
         return 5
-      if vimsupport.CurrentColumn() == 5:
-        return [ 'length' ]
-      return []
+      return [ 'length' ] if vimsupport.CurrentColumn() == 5 else []
 
     current_buffer = VimBuffer( 'buffer',
                                 contents = [ 'String test',
@@ -761,9 +739,7 @@ class OmniCompleterTest( TestCase ):
                             'g:ycm_semantic_triggers': TRIGGERS } )
   def test_OmniCompleter_GetCompletions_NoCache_NoSemanticTrigger( self, ycm ):
     def Omnifunc( findstart, base ):
-      if findstart:
-        return 0
-      return [ 'test' ]
+      return 0 if findstart else [ 'test' ]
 
     current_buffer = VimBuffer( 'buffer',
                                 contents = [ 'te' ],
@@ -785,9 +761,7 @@ class OmniCompleterTest( TestCase ):
                             'g:ycm_semantic_triggers': TRIGGERS } )
   def test_OmniCompleter_GetCompletions_NoCache_ForceSemantic( self, ycm ):
     def Omnifunc( findstart, base ):
-      if findstart:
-        return 0
-      return [ 'test' ]
+      return 0 if findstart else [ 'test' ]
 
     current_buffer = VimBuffer( 'buffer',
                                 contents = [ 'te' ],
@@ -810,12 +784,7 @@ class OmniCompleterTest( TestCase ):
   def test_OmniCompleter_GetCompletions_ConvertStringsToDictionaries(
       self, ycm ):
     def Omnifunc( findstart, base ):
-      if findstart:
-        return 5
-      return [
-        { 'word': 'a' },
-        'b'
-      ]
+      return 5 if findstart else [{'word': 'a'}, 'b']
 
     current_buffer = VimBuffer( 'buffer',
                                 contents = [ 'test.' ],
@@ -843,9 +812,7 @@ class OmniCompleterTest( TestCase ):
   def test_OmniCompleter_GetCompletions_FiletypeDisabled_SemanticTrigger(
       self, ycm ):
     def Omnifunc( findstart, base ):
-      if findstart:
-        return 5
-      return [ 'a', 'b', 'cdef' ]
+      return 5 if findstart else [ 'a', 'b', 'cdef' ]
 
     current_buffer = VimBuffer( 'buffer',
                                 contents = [ 'test.' ],
@@ -871,9 +838,7 @@ class OmniCompleterTest( TestCase ):
     self, ycm ):
 
     def Omnifunc( findstart, base ):
-      if findstart:
-        return 5
-      return [ 'a', 'b', 'cdef' ]
+      return 5 if findstart else [ 'a', 'b', 'cdef' ]
 
     current_buffer = VimBuffer( 'buffer',
                                 contents = [ 'test.' ],
@@ -898,9 +863,7 @@ class OmniCompleterTest( TestCase ):
   def test_OmniCompleter_GetCompletions_FiletypeDisabled_ForceSemantic(
       self, ycm ):
     def Omnifunc( findstart, base ):
-      if findstart:
-        return 5
-      return [ 'a', 'b', 'cdef' ]
+      return 5 if findstart else [ 'a', 'b', 'cdef' ]
 
     current_buffer = VimBuffer( 'buffer',
                                 contents = [ 'test.' ],
@@ -929,9 +892,7 @@ class OmniCompleterTest( TestCase ):
   def test_OmniCompleter_GetCompletions_AllFiletypesDisabled_ForceSemantic(
       self, ycm ):
     def Omnifunc( findstart, base ):
-      if findstart:
-        return 5
-      return [ 'a', 'b', 'cdef' ]
+      return 5 if findstart else [ 'a', 'b', 'cdef' ]
 
     current_buffer = VimBuffer( 'buffer',
                                 contents = [ 'test.' ],

@@ -11,7 +11,7 @@ import sys
 import os.path as p
 import glob
 
-version = sys.version_info[ 0 : 3 ]
+version = sys.version_info[:3]
 if version < ( 3, 6, 0 ):
   sys.exit( 'YouCompleteMe requires Python >= 3.6.0; '
             'your version of Python is ' + sys.version )

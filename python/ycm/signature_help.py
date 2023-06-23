@@ -56,16 +56,16 @@ def _MakeSignatureHelpBuffer( signature_info ):
   lines = []
   signatures = ( signature_info.get( 'signatures' ) or [] )
 
-  for sig_index, signature in enumerate( signatures ):
+  for signature in signatures:
     props = []
 
     sig_label = signature[ 'label' ]
     parameters = ( signature.get( 'parameters' ) or [] )
     for param_index, parameter in enumerate( parameters ):
-      param_label = parameter[ 'label' ]
-      begin = int( param_label[ 0 ] )
-      end = int( param_label[ 1 ] )
       if param_index == active_parameter:
+        param_label = parameter[ 'label' ]
+        begin = int( param_label[ 0 ] )
+        end = int( param_label[ 1 ] )
         props.append( {
           'col': begin + 1, # 1-based
           'length': end - begin,
@@ -149,16 +149,8 @@ def UpdateSignatureHelp( state, signature_info ): # noqa
       vim.eval( f"popup_close( { state.popup_win_id } )" )
     return SignatureHelpState( None, SignatureHelpState.INACTIVE )
 
-  if int( screen_pos[ 'curscol' ] ) <= 1:
-    col = 1
-  else:
-    # -1 for padding,
-    # -1 for the trigger character inserted (the anchor is set _after_ the
-    # character is inserted, so we remove it).
-    # FIXME: multi-byte characters would be wrong. Need to set anchor before
-    # inserting the char ?
-    col = int( screen_pos[ 'curscol' ] ) - 2
-
+  col = (1 if int(screen_pos['curscol']) <= 1 else int(screen_pos['curscol']) -
+         2)
   if col <= 0:
     col = 1
 

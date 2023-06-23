@@ -46,10 +46,7 @@ class FakeFuture:
   def __init__( self, done, response = None, exception = None ):
     self._done = done
 
-    if not done:
-      self._result = None
-    else:
-      self._result = FakeResponse( response, exception )
+    self._result = None if not done else FakeResponse( response, exception )
 
 
   def done( self ):

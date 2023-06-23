@@ -94,10 +94,7 @@ class SignatureHelpAvailableRequest( BaseRequest ):
     response = self.HandleFuture( self._response_future,
                                   truncate_message = True )
 
-    if not response:
-      return None
-
-    return response[ 'available' ]
+    return None if not response else response[ 'available' ]
 
 
   def Start( self, filetype ):

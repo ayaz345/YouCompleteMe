@@ -256,9 +256,7 @@ def _JsonFromFuture( future ):
     _ValidateResponseObject( response, response_text )
     response.close()
 
-    if response_text:
-      return json.loads( response_text )
-    return None
+    return json.loads( response_text ) if response_text else None
   except HTTPError as response:
     if response.code == HTTP_SERVER_ERROR:
       response_text = response.read()

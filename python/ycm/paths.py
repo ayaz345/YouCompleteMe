@@ -59,9 +59,8 @@ def PathToPythonInterpreter():
   if _EndsWithPython( python_interpreter ):
     return python_interpreter
 
-  python_interpreter = utils.PathToFirstExistingExecutable( [ 'python3',
-                                                              'python' ] )
-  if python_interpreter:
+  if python_interpreter := utils.PathToFirstExistingExecutable(
+      ['python3', 'python']):
     return python_interpreter
 
   raise RuntimeError( "Cannot find Python 3.6+. "

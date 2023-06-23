@@ -95,12 +95,10 @@ def WaitUntilReady( timeout = 5 ):
 
 
 def StopServer( ycm ):
-  try:
+  with contextlib.suppress(Exception):
     ycm.OnVimLeave()
     WaitUntilProcessIsTerminated( ycm._server_popen )
     CloseStandardStreams( ycm._server_popen )
-  except Exception:
-    pass
 
 
 def YouCompleteMeInstance( custom_options = {} ):

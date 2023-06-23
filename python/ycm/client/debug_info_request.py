@@ -42,8 +42,7 @@ def FormatDebugInfoResponse( response ):
   if not response:
     return 'Server errored, no debug info from server\n'
   message = _FormatYcmdDebugInfo( response )
-  completer = response[ 'completer' ]
-  if completer:
+  if completer := response['completer']:
     message += _FormatCompleterDebugInfo( completer )
   return message
 
@@ -84,8 +83,7 @@ def _FormatCompleterDebugInfo( completer ):
     else:
       message += f'  { name } not running\n'
     message += f'  { name } executable: { server[ "executable" ] }\n'
-    logfiles = server[ 'logfiles' ]
-    if logfiles:
+    if logfiles := server['logfiles']:
       message += f'  { name } logfiles:\n'
       for logfile in logfiles:
         message += f'    { logfile }\n'

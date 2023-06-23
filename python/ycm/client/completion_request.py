@@ -171,8 +171,7 @@ def _GetCompletionInfoField( completion_data ):
   info = completion_data.get( 'detailed_info', '' )
 
   if 'extra_data' in completion_data:
-    docstring = completion_data[ 'extra_data' ].get( 'doc_string', '' )
-    if docstring:
+    if docstring := completion_data['extra_data'].get('doc_string', ''):
       if info:
         info += '\n' + docstring
       else:
@@ -198,7 +197,7 @@ def ConvertCompletionDataToVimData( completion_data ):
     if extra_menu_info_width > max_width:
       if not preview_info.startswith( extra_menu_info ):
         preview_info = extra_menu_info + '\n\n' + preview_info
-      extra_menu_info = extra_menu_info[ : ( max_width - 3 ) ] + '...'
+      extra_menu_info = f'{extra_menu_info[:max_width - 3]}...'
 
   return {
     'word'     : completion_data[ 'insertion_text' ],

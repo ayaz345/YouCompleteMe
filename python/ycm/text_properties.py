@@ -30,15 +30,13 @@ import typing
 # They also support neovim, but we don't.
 def AddTextPropertyType( name, **kwargs ):
   props = {
-    'highlight': 'Ignore',
-    'combine': 0,
-    'override': 0,
-    'start_incl': 0,
-    'end_incl': 0,
-    'priority': 10
-  }
-  props.update( kwargs )
-
+      'highlight': 'Ignore',
+      'combine': 0,
+      'override': 0,
+      'start_incl': 0,
+      'end_incl': 0,
+      'priority': 10,
+  } | kwargs
   vim.eval( f"prop_type_add( '{ vimsupport.EscapeForVim( name ) }', "
             f"               { json.dumps( props ) } )" )
 
@@ -59,12 +57,12 @@ def AddTextProperty( bufnr,
   if prop_id is not None:
     props[ 'id' ] = prop_id
   if extra_args:
-    props.update( extra_args )
+    props |= extra_args
   if 'end' in range:
-    props.update( {
-      'end_lnum': range[ 'end' ][ 'line_num' ],
-      'end_col':  range[ 'end' ][ 'column_num' ],
-    } )
+    props |= {
+        'end_lnum': range['end']['line_num'],
+        'end_col': range['end']['column_num'],
+    }
   return vim.eval( f"prop_add( { range[ 'start' ][ 'line_num' ] },"
                    f"          { range[ 'start' ][ 'column_num' ] },"
                    f"          { json.dumps( props ) } )" )

@@ -65,7 +65,7 @@ def PythonSysPath( **kwargs ):
   if major_version == 2:
     dependencies.append( p.join( DIR_OF_THIRD_PARTY, 'pythonfutures' ) )
 
-  sys_path[ 0:0 ] = dependencies
+  sys_path[:0] = dependencies
   sys_path.insert( GetStandardLibraryIndexInSysPath( sys_path ) + 1,
                    p.join( DIR_OF_THIRD_PARTY, 'python-future', 'src' ) )
 

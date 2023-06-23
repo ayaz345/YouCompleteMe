@@ -67,10 +67,7 @@ class _MasterDiagnosticFilter:
 
 
 def _ListOf( config_entry ):
-  if isinstance( config_entry, list ):
-    return config_entry
-
-  return [ config_entry ]
+  return config_entry if isinstance( config_entry, list ) else [ config_entry ]
 
 
 def CompileRegex( raw_regex ):

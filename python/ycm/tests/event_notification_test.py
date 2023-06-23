@@ -265,8 +265,8 @@ class EventNotificationTest( TestCase ):
     # in combination with YouCompleteMe.OnFileReadyToParse when the completer
     # raises the (special) UnknownExtraConf exception
     FILE_NAME = 'a_file'
-    MESSAGE = ( 'Found ' + FILE_NAME + '. Load? \n\n(Question can be '
-                'turned off with options, see YCM docs)' )
+    MESSAGE = (f'Found {FILE_NAME}' + '. Load? \n\n(Question can be '
+               'turned off with options, see YCM docs)')
 
     def UnknownExtraConfResponse( *args ):
       raise UnknownExtraConf( FILE_NAME )

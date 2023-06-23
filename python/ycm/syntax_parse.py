@@ -90,8 +90,7 @@ def _SyntaxGroupsFromOutput( syntax_output ):
     if not line:
       continue
 
-    match = SYNTAX_GROUP_REGEX.search( line )
-    if match:
+    if match := SYNTAX_GROUP_REGEX.search(line):
       if looking_for_group:
         looking_for_group = False
       else:
@@ -103,7 +102,7 @@ def _SyntaxGroupsFromOutput( syntax_output ):
       if looking_for_group:
         continue
 
-      if line[ 0 ] == ' ' or line[ 0 ] == '\t':
+      if line[0] in [' ', '\t']:
         current_group.lines.append( line.strip() )
 
   if current_group:
@@ -215,8 +214,7 @@ def _ExtractKeywordsFromLine( line ):
 
     nextgroup_at_start = False
 
-    keyword_matched = KEYWORD_REGEX.match( word )
-    if keyword_matched:
+    if keyword_matched := KEYWORD_REGEX.match(word):
       keywords.append( keyword_matched.group( 1 ) )
   return keywords
 

@@ -116,17 +116,19 @@ def CurrentWorkingDirectory( path ):
 
 
 def _MockGetBufferNumber( buffer_filename ):
-  for vim_buffer in VIM_MOCK.buffers:
-    if vim_buffer.name == buffer_filename:
-      return vim_buffer.number
-  return -1
+  return next(
+      (vim_buffer.number for vim_buffer in VIM_MOCK.buffers
+       if vim_buffer.name == buffer_filename),
+      -1,
+  )
 
 
 def _MockGetBufferWindowNumber( buffer_number ):
-  for window in VIM_MOCK.windows:
-    if window.buffer.number == buffer_number:
-      return window.number
-  return -1
+  return next(
+      (window.number for window in VIM_MOCK.windows
+       if window.buffer.number == buffer_number),
+      -1,
+  )
 
 
 def _MockGetBufferVariable( buffer_number, option ):
@@ -138,9 +140,7 @@ def _MockGetBufferVariable( buffer_number, option ):
         return vim_buffer.filetype
       if option == 'changedtick':
         return vim_buffer.changedtick
-      if option == '&bh':
-        return vim_buffer.bufhidden
-      return ''
+      return vim_buffer.bufhidden if option == '&bh' else ''
   return ''
 
 
@@ -151,40 +151,33 @@ def _MockVimBufferEval( value ):
   if value == '&filetype':
     return VIM_MOCK.current.buffer.filetype
 
-  match = BUFNR_REGEX.search( value )
-  if match:
+  if match := BUFNR_REGEX.search(value):
     buffer_filename = match.group( 'buffer_filename' )
     return _MockGetBufferNumber( buffer_filename )
 
-  match = BUFWINNR_REGEX.search( value )
-  if match:
+  if match := BUFWINNR_REGEX.search(value):
     buffer_number = int( match.group( 'buffer_number' ) )
     return _MockGetBufferWindowNumber( buffer_number )
 
-  match = GETBUFVAR_REGEX.search( value )
-  if match:
+  if match := GETBUFVAR_REGEX.search(value):
     buffer_number = int( match.group( 'buffer_number' ) )
     option = match.group( 'option' )
     return _MockGetBufferVariable( buffer_number, option )
 
   current_buffer = VIM_MOCK.current.buffer
-  match = re.search( OMNIFUNC_REGEX_FORMAT.format(
-                         omnifunc_name = current_buffer.omnifunc_name ),
-                     value )
-  if match:
-    findstart = int( match.group( 'findstart' ) )
-    base = match.group( 'base' )
+  if match := re.search(
+      OMNIFUNC_REGEX_FORMAT.format(omnifunc_name=current_buffer.omnifunc_name),
+      value,
+  ):
+    findstart = int(match['findstart'])
+    base = match['base']
     return current_buffer.omnifunc( findstart, base )
 
   return None
 
 
 def _MockVimWindowEval( value ):
-  if value == 'winnr("#")':
-    # For simplicity, we always assume there is no previous window.
-    return 0
-
-  return None
+  return 0 if value == 'winnr("#")' else None
 
 
 def _MockVimOptionsEval( value ):
@@ -199,8 +192,7 @@ def _MockVimOptionsEval( value ):
         global_options[ key[ 2: ] ] = value
     return global_options
 
-  match = EXISTS_REGEX.search( value )
-  if match:
+  if match := EXISTS_REGEX.search(value):
     option = match.group( 'option' )
     return option in VIM_OPTIONS
 
@@ -220,25 +212,23 @@ def _MockVimFunctionsEval( value ):
   if value.startswith( 'has( "' ):
     return False
 
-  match = re.match( 'sign_getplaced\\( (?P<bufnr>\\d+), '
-                    '{ "group": "ycm_signs" } \\)', value )
-  if match:
-    filtered = list( filter( lambda sign: sign.bufnr ==
-                                          int( match.group( 'bufnr' ) ),
-                             VIM_SIGNS ) )
-    r = [ { 'signs': filtered } ]
-    return r
-
-  match = re.match( 'sign_unplacelist\\( (?P<sign_list>\\[.*\\]) \\)', value )
-  if match:
-    sign_list = eval( match.group( 'sign_list' ) )
+  if match := re.match(
+      'sign_getplaced\\( (?P<bufnr>\\d+), '
+      '{ "group": "ycm_signs" } \\)',
+      value,
+  ):
+    filtered = list(
+        filter(lambda sign: sign.bufnr == int(match['bufnr']), VIM_SIGNS))
+    return [ { 'signs': filtered } ]
+  if match := re.match('sign_unplacelist\\( (?P<sign_list>\\[.*\\]) \\)',
+                       value):
+    sign_list = eval(match['sign_list'])
     for sign in sign_list:
       VIM_SIGNS.remove( sign )
     return True # Why True?
 
-  match = re.match( 'sign_placelist\\( (?P<sign_list>\\[.*\\]) \\)', value )
-  if match:
-    sign_list = json.loads( match.group( 'sign_list' ).replace( "'", '"' ) )
+  if match := re.match('sign_placelist\\( (?P<sign_list>\\[.*\\]) \\)', value):
+    sign_list = json.loads(match['sign_list'].replace("'", '"'))
     for sign in sign_list:
       VIM_SIGNS.append( VimSign( sign[ 'lnum' ],
                                  sign[ 'name' ],
@@ -249,14 +239,15 @@ def _MockVimFunctionsEval( value ):
 
 
 def _MockVimPropEval( value ):
-  match = re.match( 'prop_list\\( (?P<lnum>\\d+), '
-                    '{ "bufnr": (?P<bufnr>\\d+) } \\)', value )
-  if match:
-    return [ p for p in VIM_PROPS_FOR_BUFFER[ int( match.group( 'bufnr' ) ) ]
-             if p.start_line == int( match.group( 'lnum' ) ) ]
+  if match := re.match(
+      'prop_list\\( (?P<lnum>\\d+), '
+      '{ "bufnr": (?P<bufnr>\\d+) } \\)', value):
+    return [
+        p for p in VIM_PROPS_FOR_BUFFER[int(match['bufnr'])]
+        if p.start_line == int(match['lnum'])
+    ]
 
-  match = PROP_ADD_REGEX.search( value )
-  if match:
+  if match := PROP_ADD_REGEX.search(value):
     prop_start_line = int( match.group( 'start_line' ) )
     prop_start_column = int( match.group( 'start_column' ) )
     import ast
@@ -271,8 +262,7 @@ def _MockVimPropEval( value ):
     VIM_PROPS_FOR_BUFFER[ int( opts[ 'bufnr' ] ) ].append( vim_prop )
     return vim_prop.id
 
-  match = PROP_REMOVE_REGEX.search( value )
-  if match:
+  if match := PROP_REMOVE_REGEX.search(value):
     prop, lin_num = eval( match.group( 'prop' ) )
     vim_props = VIM_PROPS_FOR_BUFFER[ prop[ 'bufnr' ] ]
     for index, vim_prop in enumerate( vim_props ):
@@ -285,8 +275,7 @@ def _MockVimPropEval( value ):
 
 
 def _MockVimVersionEval( value ):
-  match = HAS_PATCH_REGEX.search( value )
-  if match:
+  if match := HAS_PATCH_REGEX.search(value):
     if not isinstance( VIM_VERSION, Version ):
       raise RuntimeError( 'Vim version is not set.' )
     return VIM_VERSION.patch >= int( match.group( 'patch' ) )
@@ -327,15 +316,13 @@ def _MockVimEval( value ): # noqa
   if result is not None:
     return result
 
-  match = FNAMEESCAPE_REGEX.search( value )
-  if match:
+  if match := FNAMEESCAPE_REGEX.search(value):
     return match.group( 'filepath' )
 
   if value == REDIR[ 'variable' ]:
     return REDIR[ 'output' ]
 
-  match = STRDISPLAYWIDTH_REGEX.search( value )
-  if match:
+  if match := STRDISPLAYWIDTH_REGEX.search(value):
     return len( match.group( 'text' ) )
 
   raise VimError( f'Unexpected evaluation: { value }' )
@@ -350,18 +337,15 @@ def _MockWipeoutBuffer( buffer_number ):
 
 
 def _MockVimCommand( command ):
-  match = BWIPEOUT_REGEX.search( command )
-  if match:
+  if match := BWIPEOUT_REGEX.search(command):
     return _MockWipeoutBuffer( int( match.group( 1 ) ) )
 
-  match = REDIR_START_REGEX.search( command )
-  if match:
+  if match := REDIR_START_REGEX.search(command):
     REDIR[ 'status' ] = True
     REDIR[ 'variable' ] = match.group( 'variable' )
     return
 
-  match = REDIR_END_REGEX.search( command )
-  if match:
+  if match := REDIR_END_REGEX.search(command):
     REDIR[ 'status' ] = False
     return
 
@@ -369,8 +353,7 @@ def _MockVimCommand( command ):
     REDIR[ 'variable' ] = ''
     return
 
-  match = LET_REGEX.search( command )
-  if match:
+  if match := LET_REGEX.search(command):
     option = match.group( 'option' )
     value = json.loads( match.group( 'value' ) )
     VIM_OPTIONS[ option ] = value
@@ -380,11 +363,8 @@ def _MockVimCommand( command ):
 
 
 def _MockVimOptions( option ):
-  result = VIM_OPTIONS.get( '&' + option )
-  if result is not None:
-    return result
-
-  return None
+  result = VIM_OPTIONS.get(f'&{option}')
+  return result if result is not None else None
 
 
 class VimBuffer:
@@ -492,8 +472,7 @@ class VimBuffers:
 class VimTabpages:
   def __init__( self, *args ):
     """|buffers| is a list of VimBuffer objects."""
-    self._tabpages = []
-    self._tabpages.extend( args )
+    self._tabpages = list(args)
 
 
   def __getitem__( self, number ):
@@ -541,10 +520,9 @@ class VimTabpage:
     self.number = number
     self.windows = []
     self.windows.append( VimWindow( self, 1, buffers[ 0 ], cursor ) )
-    for window_number in range( 1, len( buffers ) ):
-      self.windows.append( VimWindow( self,
-                                      window_number + 1,
-                                      buffers[ window_number ] ) )
+    self.windows.extend(
+        VimWindow(self, window_number + 1, buffers[window_number])
+        for window_number in range(1, len(buffers)))
 
 
   def __getitem__( self, number ):
@@ -758,7 +736,7 @@ def ExpectedFailure( reason, *exception_matchers ):
         except AssertionError:
           # Failed for the wrong reason!
           import traceback
-          print( 'Test failed for the wrong reason: ' + traceback.format_exc() )
+          print(f'Test failed for the wrong reason: {traceback.format_exc()}')
           # Real failure reason is the *original* exception, we're only trapping
           # and ignoring the exception that is expected.
           raise test_exception
@@ -767,6 +745,7 @@ def ExpectedFailure( reason, *exception_matchers ):
         skip( reason )
       else:
         raise AssertionError( f'Test was expected to fail: { reason }' )
+
     return Wrapper
 
   return decorator

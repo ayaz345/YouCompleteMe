@@ -325,21 +325,20 @@ def GetTextProperties( buffer_number ):
                              '"end_lnum": -1, '
                              '"types": [ "YcmErrorProperty", '
                                         '"YcmWarningProperty" ] } )' ) ]
-    else:
-      properties = []
-      for line_number in range( len( vim.buffers[ buffer_number ] ) ):
-        vim_props =  vim.eval( f'prop_list( {line_number + 1}, '
-                               f'{{ "bufnr": { buffer_number } }} )' )
-        properties.extend(
-          DiagnosticProperty(
-            int( p[ 'id' ] ),
-            p[ 'type' ],
-            line_number + 1,
-            int( p[ 'col' ] ),
-            int( p[ 'length' ] ) )
-          for p in vim_props if p.get( 'type', '' ).startswith( 'Ycm' )
-        )
-      return properties
+    properties = []
+    for line_number in range( len( vim.buffers[ buffer_number ] ) ):
+      vim_props =  vim.eval( f'prop_list( {line_number + 1}, '
+                             f'{{ "bufnr": { buffer_number } }} )' )
+      properties.extend(
+        DiagnosticProperty(
+          int( p[ 'id' ] ),
+          p[ 'type' ],
+          line_number + 1,
+          int( p[ 'col' ] ),
+          int( p[ 'length' ] ) )
+        for p in vim_props if p.get( 'type', '' ).startswith( 'Ycm' )
+      )
+    return properties
   else:
     ext_marks = vim.eval(
       f'nvim_buf_get_extmarks( { buffer_number }, '
@@ -539,10 +538,7 @@ def ComputeFittingHeightForCurrentWindow():
     return len( vim.current.buffer )
 
   window_width = current_window.width
-  fitting_height = 0
-  for line in vim.current.buffer:
-    fitting_height += len( line ) // window_width + 1
-  return fitting_height
+  return sum(len( line ) // window_width + 1 for line in vim.current.buffer)
 
 
 def SetFittingHeightForCurrentWindow():
@@ -597,7 +593,7 @@ def VimExpressionToPythonType( vim_expression ):
   Unicode string."""
 
   result = vim.eval( vim_expression )
-  if not ( isinstance( result, str ) or isinstance( result, bytes ) ):
+  if not (isinstance(result, (str, bytes))):
     return result
 
   try:
@@ -651,11 +647,9 @@ def TryJumpLocationInTab( tab, filename, line, column ):
 
 # Both |line| and |column| need to be 1-based
 def TryJumpLocationInTabs( filename, line, column ):
-  for tab in vim.tabpages:
-    if TryJumpLocationInTab( tab, filename, line, column ):
-      return True
-  # 'filename' is not opened in any tab pages
-  return False
+  return any(
+      TryJumpLocationInTab(tab, filename, line, column)
+      for tab in vim.tabpages)
 
 
 # Maps User command to vim command
@@ -757,7 +751,7 @@ def PostVimMessage( message, warning = True, truncate = False ):
 
     message = message.replace( '\n', ' ' )
     if len( message ) >= vim_width:
-      message = message[ : vim_width - 4 ] + '...'
+      message = f'{message[:vim_width - 4]}...'
 
     old_ruler = GetIntValue( '&ruler' )
     old_showcmd = GetIntValue( '&showcmd' )
@@ -812,7 +806,7 @@ def PresentDialog( message, choices, default_choice_index = 0 ):
 def Confirm( message ):
   """Display |message| with Ok/Cancel operations. Returns True if the user
   selects Ok"""
-  return bool( PresentDialog( message, [ "Ok", "Cancel" ] ) == 0 )
+  return PresentDialog( message, [ "Ok", "Cancel" ] ) == 0
 
 
 def SelectFromList( prompt, items ):
@@ -829,10 +823,10 @@ def SelectFromList( prompt, items ):
 
   See also :help inputlist()."""
 
-  vim_items = [ prompt ]
-  vim_items.extend( [ f"{ i + 1 }: { item }"
-                      for i, item in enumerate( items ) ] )
-
+  vim_items = [
+      prompt,
+      *[f"{ i + 1 }: { item }" for i, item in enumerate(items)],
+  ]
   # The vim documentation warns not to present lists larger than the number of
   # lines of display. This is sound advice, but there really isn't any sensible
   # thing we can do in that scenario. Testing shows that Vim just pages the
@@ -854,7 +848,7 @@ def SelectFromList( prompt, items ):
     # See :help input() for explanation of the use of inputsave() and inpput
     # restore(). It is done in try/finally in case vim.eval ever throws an
     # exception (such as KeyboardInterrupt)
-    selected = GetIntValue( "inputlist( " + json.dumps( vim_items ) + " )" ) - 1
+    selected = GetIntValue(f"inputlist( {json.dumps(vim_items)} )") - 1
   except KeyboardInterrupt:
     selected = -1
   finally:
@@ -893,8 +887,8 @@ def CurrentFiletypesEnabled( disabled_filetypes ):
   |disabled_filetypes| must be a dictionary where keys are the disabled
   filetypes and values are unimportant. The special key '*' matches all
   filetypes."""
-  return ( '*' not in disabled_filetypes and
-           not any( x in disabled_filetypes for x in CurrentFiletypes() ) )
+  return '*' not in disabled_filetypes and all(x not in disabled_filetypes
+                                               for x in CurrentFiletypes())
 
 
 def GetBufferFiletypes( bufnr ):
@@ -1185,8 +1179,7 @@ def ReplaceChunk( start, end, replacement_text, vim_buffer ):
 
 def InsertNamespace( namespace ):
   if VariableExists( 'g:ycm_csharp_insert_namespace_expr' ):
-    expr = GetVariableValue( 'g:ycm_csharp_insert_namespace_expr' )
-    if expr:
+    if expr := GetVariableValue('g:ycm_csharp_insert_namespace_expr'):
       SetVariableValue( "g:ycm_namespace_to_insert", namespace )
       vim.eval( expr )
       return
@@ -1238,7 +1231,7 @@ def JumpToTab( tab_number ):
 
 def OpenFileInPreviewWindow( filename ):
   """ Open the supplied filename in the preview window """
-  vim.command( 'silent! pedit! ' + filename )
+  vim.command(f'silent! pedit! {filename}')
 
 
 def WriteToPreviewWindow( message ):

@@ -62,8 +62,7 @@ class MessagesPoll( BaseRequest ):
       # Server returned an exception.
       return False
 
-    poll_again = _HandlePollResponse( response, diagnostics_handler )
-    if poll_again:
+    if poll_again := _HandlePollResponse(response, diagnostics_handler):
       self._SendRequest()
       return True
 

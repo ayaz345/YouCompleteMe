@@ -118,10 +118,9 @@ class DiagnosticInterface:
   def _EchoDiagnosticForLine( self, line_num ):
     self._previous_diag_line_number = line_num
 
-    diags = self._line_to_diags[ line_num ]
     text = None
     first_diag = None
-    if diags:
+    if diags := self._line_to_diags[line_num]:
       first_diag = diags[ 0 ]
       text = first_diag[ 'text' ]
       if first_diag.get( 'fixit_available', False ):
@@ -140,9 +139,8 @@ class DiagnosticInterface:
                               prop_types = [ 'YcmVirtDiagPadding',
                                              'YcmVirtDiagError',
                                              'YcmVirtDiagWarning' ] )
-    else:
-      if not will_be_replaced:
-        vimsupport.PostVimMessage( '', warning = False )
+    elif not will_be_replaced:
+      vimsupport.PostVimMessage( '', warning = False )
 
     self._diag_message_needs_clearing = False
 
@@ -166,18 +164,15 @@ class DiagnosticInterface:
                                       'text_wrap': 'wrap'
                                     } )
 
-      if vim.options[ 'ambiwidth' ] != 'double':
-        marker = '⚠'
-      else:
-        marker = '>'
-
+      marker = '⚠' if vim.options[ 'ambiwidth' ] != 'double' else '>'
       MakeVritualTextProperty(
         'YcmVirtDiagPadding',
         ' ' * vim.buffers[ self._bufnr ].options[ 'shiftwidth' ] ),
       MakeVritualTextProperty(
-        'YcmVirtDiagError' if _DiagnosticIsError( first_diag )
-                       else 'YcmVirtDiagWarning',
-        marker + ' ' + [ line for line in text.splitlines() if line ][ 0 ] )
+          'YcmVirtDiagError'
+          if _DiagnosticIsError(first_diag) else 'YcmVirtDiagWarning',
+          f'{marker} {[line for line in text.splitlines() if line][0]}',
+      )
     else:
       if not text:
         # We already cleared it
@@ -189,10 +184,9 @@ class DiagnosticInterface:
 
 
   def _DiagnosticsCount( self, predicate ):
-    count = 0
-    for diags in self._line_to_diags.values():
-      count += sum( 1 for d in diags if predicate( d ) )
-    return count
+    return sum(
+        sum(1 for d in diags if predicate(d))
+        for diags in self._line_to_diags.values())
 
 
   def _UpdateLocationLists( self, open_on_edit = False ):
@@ -374,12 +368,4 @@ def _IsValidRange( start_line, start_column, end_line, end_column ):
     return False
 
   # End line after start line - valid
-  if start_line < end_line:
-    return True
-
-  # Same line, start colum after end column - invalid
-  if start_column > end_column:
-    return False
-
-  # Same line, start column before or equal to end column - valid
-  return True
+  return True if start_line < end_line else start_column <= end_column

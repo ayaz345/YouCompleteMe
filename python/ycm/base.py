@@ -55,7 +55,7 @@ def GetUserOptions( default_options = {} ):
     if not key.startswith( YCM_VAR_PREFIX ):
       continue
     new_key = key[ len( YCM_VAR_PREFIX ): ]
-    new_value = vimsupport.VimExpressionToPythonType( 'g:' + key )
+    new_value = vimsupport.VimExpressionToPythonType(f'g:{key}')
     user_options[ new_key ] = new_value
 
   return user_options
@@ -79,7 +79,7 @@ def CurrentIdentifierFinished():
 
 def LastEnteredCharIsIdentifierChar():
   line, current_column = vimsupport.CurrentLineContentsAndCodepointColumn()
-  if current_column - 1 < 0:
+  if current_column < 1:
     return False
   filetype = vimsupport.CurrentFiletypes()[ 0 ]
   return (
@@ -106,9 +106,7 @@ def AdjustCandidateInsertionText( candidates ):
 
   def NewCandidateInsertionText( to_insert, text_after_cursor ):
     overlap_len = OverlapLength( to_insert, text_after_cursor )
-    if overlap_len:
-      return to_insert[ :-overlap_len ]
-    return to_insert
+    return to_insert[ :-overlap_len ] if overlap_len else to_insert
 
   text_after_cursor = vimsupport.TextAfterCursor()
   if not text_after_cursor:

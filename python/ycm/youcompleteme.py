@@ -50,8 +50,8 @@ from ycm.client.messages_request import MessagesPoll
 def PatchNoProxy():
   current_value = os.environ.get( 'no_proxy', '' )
   additions = '127.0.0.1,localhost'
-  os.environ[ 'no_proxy' ] = ( additions if not current_value
-                               else current_value + ',' + additions )
+  os.environ['no_proxy'] = (additions if not current_value else
+                            f'{current_value},{additions}')
 
 
 # We need this so that Requests doesn't end up using the local HTTP proxy when
@@ -143,7 +143,7 @@ class YouCompleteMe:
 
     server_port = utils.GetUnusedLocalhostPort()
 
-    BaseRequest.server_location = 'http://127.0.0.1:' + str( server_port )
+    BaseRequest.server_location = f'http://127.0.0.1:{str(server_port)}'
     BaseRequest.hmac_secret = hmac_secret
 
     try:
@@ -258,15 +258,13 @@ class YouCompleteMe:
                                                            logfile = logfile )
 
     if return_code != 8:
-      error_message = SERVER_SHUTDOWN_MESSAGE + ' ' + error_message
+      error_message = f'{SERVER_SHUTDOWN_MESSAGE} {error_message}'
     self._logger.error( error_message )
     vimsupport.PostVimMessage( error_message )
 
 
   def ServerPid( self ):
-    if not self._server_popen:
-      return -1
-    return self._server_popen.pid
+    return -1 if not self._server_popen else self._server_popen.pid
 
 
   def _ShutdownServer( self ):
@@ -397,7 +395,7 @@ class YouCompleteMe:
       final_arguments.append( argument )
 
     if has_range:
-      extra_data.update( vimsupport.BuildRange( start_line, end_line ) )
+      extra_data |= vimsupport.BuildRange( start_line, end_line )
     self._AddExtraConfDataIfNeeded( extra_data )
 
     return final_arguments, extra_data
@@ -509,28 +507,6 @@ class YouCompleteMe:
       # otherwise we default to using the current location list and the results
       # are that non-visible buffer errors clobber visible ones.
       self._buffers[ bufnr ].UpdateWithNewDiagnostics( diagnostics, True )
-    else:
-      # The project contains errors in file "filepath", but that file is not
-      # open in any buffer. This happens for Language Server Protocol-based
-      # completers, as they return diagnostics for the entire "project"
-      # asynchronously (rather than per-file in the response to the parse
-      # request).
-      #
-      # There are a number of possible approaches for
-      # this, but for now we simply ignore them. Other options include:
-      # - Use the QuickFix list to report project errors?
-      # - Use a special buffer for project errors
-      # - Put them in the location list of whatever the "current" buffer is
-      # - Store them in case the buffer is opened later
-      # - add a :YcmProjectDiags command
-      # - Add them to errror/warning _counts_ but not any actual location list
-      #   or other
-      # - etc.
-      #
-      # However, none of those options are great, and lead to their own
-      # complexities. So for now, we just ignore these diagnostics for files not
-      # open in any buffer.
-      pass
 
 
   def OnPeriodicTick( self ):
@@ -641,8 +617,7 @@ class YouCompleteMe:
 
 
   def OnCompleteDone( self ):
-    completion_request = self.GetCurrentCompletionRequest()
-    if completion_request:
+    if completion_request := self.GetCurrentCompletionRequest():
       completion_request.OnCompleteDone()
 
 
@@ -759,17 +734,12 @@ class YouCompleteMe:
 
     extra_data = {}
     self._AddExtraConfDataIfNeeded( extra_data )
-    debug_info = SendDebugInfoRequest( extra_data )
-    if debug_info:
-      completer = debug_info[ 'completer' ]
-      if completer:
+    if debug_info := SendDebugInfoRequest(extra_data):
+      if completer := debug_info['completer']:
         for server in completer[ 'servers' ]:
           logfiles_list.extend( server[ 'logfiles' ] )
 
-    logfiles = {}
-    for logfile in logfiles_list:
-      logfiles[ os.path.basename( logfile ) ] = logfile
-    return logfiles
+    return {os.path.basename( logfile ): logfile for logfile in logfiles_list}
 
 
   def _OpenLogfile( self, size, mods, logfile ):
@@ -861,10 +831,10 @@ class YouCompleteMe:
             prop = vimsupport.GetTextPropertyForDiag( buffer_number,
                                                       window.cursor[ 0 ],
                                                       diag )
-            options.update( {
-              'textpropid': prop[ 'id' ],
-              'textprop': prop[ 'type' ],
-            } )
+            options |= {
+                'textpropid': prop['id'],
+                'textprop': prop['type'],
+            }
             options.pop( 'col' )
         vim.eval( f'{ popup_func }( { json.dumps( lines ) }, '
                                   f'{ json.dumps( options ) } )' )
